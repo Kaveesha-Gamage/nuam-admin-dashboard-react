@@ -1,4 +1,4 @@
-import { Activity, Bell, ChevronLeft, FileText, LayoutDashboard, Menu, Network, Server, Settings, User } from "lucide-react";
+import { Activity, Bell, ChevronLeft, FileText, LayoutDashboard, MapPin, Menu, Network, Server, Settings, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 
@@ -34,6 +34,7 @@ function MainLayout() {
                         { icon: <LayoutDashboard className="h-5 w-5" />, label: 'Dashboard', link: '/'},
                         { icon: <Network className="h-5 w-5" />, label: 'Topology', link: '/topological-view' },
                         { icon: <Activity className="h-5 w-5" />, label: 'Network Activity', link: '/network-activity'},
+                        { icon: <MapPin className="h-5 w-5" />, label: 'IP Management', link: '/ip-management'},
                         { icon: <FileText className="h-5 w-5" />, label: 'Reports', link: '/reports'},
                         { icon: <Settings className="h-5 w-5" />, label: 'Settings', link: '/settings' },
                     ].map((item) => (

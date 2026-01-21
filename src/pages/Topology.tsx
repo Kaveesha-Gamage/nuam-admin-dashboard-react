@@ -18,8 +18,8 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import RealtimeDataDialog from '@/components/topology/RealtimeDataDialog';
 
-// TypeScript Interfaces
 interface Device {
   id: string;
   name: string;
@@ -43,7 +43,6 @@ interface NetworkSwitch {
   y: number;
 }
 
-// Mock Data
 const mockSwitch: NetworkSwitch = {
   id: 'switch-1',
   name: 'Core Switch',
@@ -186,7 +185,6 @@ const mockDevices: Device[] = [
   }
 ];
 
-// Helper function to calculate device positions in a radial layout
 const calculateDevicePositions = (devices: Device[], centerX: number, centerY: number, radius: number): Device[] => {
   return devices.map((device, index) => {
     const angle = (index / devices.length) * 2 * Math.PI - Math.PI / 2;
@@ -198,7 +196,6 @@ const calculateDevicePositions = (devices: Device[], centerX: number, centerY: n
   });
 };
 
-// Device Icon Component
 const DeviceIcon: React.FC<{ type: Device['type']; className?: string }> = ({ type, className = "h-6 w-6" }) => {
   const icons = {
     laptop: <Laptop className={className} />,
@@ -210,7 +207,7 @@ const DeviceIcon: React.FC<{ type: Device['type']; className?: string }> = ({ ty
   return icons[type] || <Server className={className} />;
 };
 
-// Status Color Helper
+
 const getStatusColor = (status: Device['status']) => {
   switch (status) {
     case 'active': return '#22c55e';
@@ -220,7 +217,6 @@ const getStatusColor = (status: Device['status']) => {
   }
 };
 
-// Switch Node Component
 const SwitchNode: React.FC<{ switch_: NetworkSwitch }> = ({ switch_ }) => (
   <g>
     <circle
@@ -254,7 +250,6 @@ const SwitchNode: React.FC<{ switch_: NetworkSwitch }> = ({ switch_ }) => (
   </g>
 );
 
-// Device Node Component
 const DeviceNode: React.FC<{
   device: Device;
   onClick: () => void;
@@ -306,7 +301,6 @@ const DeviceNode: React.FC<{
   );
 };
 
-// Connection Line Component
 const ConnectionLine: React.FC<{
   x1: number;
   y1: number;
@@ -331,7 +325,6 @@ const ConnectionLine: React.FC<{
   );
 };
 
-// Device Details Panel
 const DeviceDetailsPanel: React.FC<{ device: Device | null; onClose: () => void }> = ({ device, onClose }) => {
   if (!device) return null;
 
@@ -423,7 +416,6 @@ const DeviceDetailsPanel: React.FC<{ device: Device | null; onClose: () => void 
   );
 };
 
-// Topology Legend
 const TopologyLegend: React.FC = () => (
   <Card className="w-64">
     <CardHeader className="pb-3">
@@ -495,7 +487,6 @@ const TopologyLegend: React.FC = () => (
   </Card>
 );
 
-// Main Topology Canvas Component
 const TopologyCanvas: React.FC<{
   devices: Device[];
   switch_: NetworkSwitch;
@@ -565,11 +556,11 @@ const TopologyCanvas: React.FC<{
   );
 };
 
-// Main Network Topology Page Component
 const NetworkTopologyPage: React.FC = () => {
   const [showInactive, setShowInactive] = useState(true);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [devices, setDevices] = useState<Device[]>([]);
+  const [isRealtimeDialogOpen, setIsRealtimeDialogOpen] = useState(true);
 
   useEffect(() => {
     const filteredDevices = showInactive 
@@ -650,6 +641,16 @@ const NetworkTopologyPage: React.FC = () => {
             />
           </div>
         )}
+        
+
+        
+        <RealtimeDataDialog
+            isOpen={isRealtimeDialogOpen}
+            onClose={() => setIsRealtimeDialogOpen(false)}
+            deviceName="Device Name"
+            deviceIP="192.168.1.100"
+        />
+
       </div>
     </div>
   );

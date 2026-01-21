@@ -322,7 +322,6 @@ const Dashboard: React.FC = () => {
                 />
             </div>
 
-            {/* Additional Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <MetricCard
                     title="ARP Traffic Rate"
@@ -338,13 +337,10 @@ const Dashboard: React.FC = () => {
                 />
             </div>
 
-            {/* Device Table */}
-            <DeviceTable devices={mockDevices} />
-
-            {/* Network Charts */}
             <NetworkCharts />
 
-            {/* Event Feed */}
+            <DeviceTable devices={mockDevices} />
+
             <EventFeed events={mockEvents} />
 
         </>
