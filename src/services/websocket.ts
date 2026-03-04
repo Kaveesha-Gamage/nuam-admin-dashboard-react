@@ -12,6 +12,7 @@ export const connectWebSocket = (
   socket.onmessage = (event: MessageEvent) => {
     try {
       const data = JSON.parse(event.data);
+      console.log("WebSocket message received:", data);
       onMessage(data);
     } catch (err) {
       console.error("Invalid JSON:", err);

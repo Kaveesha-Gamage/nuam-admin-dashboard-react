@@ -1,7 +1,11 @@
 import { mapDevice, mapEvent } from "@/lib/mappers";
 import { Activity } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { connectWebSocket, disconnectWebSocket, isWebSocketConnected } from "../services/websocket";
+import {
+  connectWebSocket,
+  disconnectWebSocket,
+  isWebSocketConnected,
+} from "../services/websocket";
 
 export interface Device {
   id: string;
@@ -57,7 +61,9 @@ export const useDashboardData = () => {
   });
 
   // Track previous metric for ARP rate calculation
-  const prevArpRef = useRef<{ arpRequests: number; timestamp: number } | null>(null);
+  const prevArpRef = useRef<{ arpRequests: number; timestamp: number } | null>(
+    null,
+  );
   const [arpRate, setArpRate] = useState<number>(0);
 
   useEffect(() => {
@@ -65,21 +71,34 @@ export const useDashboardData = () => {
       setIsConnected(true);
 
       // DEVICE_JOINED
-      if (data.event?.type === "TOPOLOGY" && data.event?.subtype === "DEVICE_JOINED") {
+      if (
+        data.event?.type === "TOPOLOGY" &&
+        data.event?.subtype === "DEVICE_JOINED"
+      ) {
         const device = mapDevice(data.event.payload.device);
         const event = mapEvent(data.event);
 
         setDevices((prev) =>
           prev.some((d) => d.id === device.id)
             ? prev
-            : [{ ...device, status: "active", lastSeen: new Date().toISOString() }, ...prev]
+            : [
+                {
+                  ...device,
+                  status: "active",
+                  lastSeen: new Date().toISOString(),
+                },
+                ...prev,
+              ],
         );
 
         setEvents((prev) => [event, ...prev]);
       }
 
       // DEVICE_LEFT
-      if (data.event?.type === "TOPOLOGY" && data.event?.subtype === "DEVICE_LEFT") {
+      if (
+        data.event?.type === "TOPOLOGY" &&
+        data.event?.subtype === "DEVICE_LEFT"
+      ) {
         const deviceId = data.event.payload.device.device_id;
         const event = mapEvent(data.event);
 
@@ -87,17 +106,22 @@ export const useDashboardData = () => {
           prev.map((d) =>
             d.id === deviceId
               ? { ...d, status: "idle", lastSeen: new Date().toISOString() }
-              : d
-          )
+              : d,
+          ),
         );
 
         setEvents((prev) => [event, ...prev]);
       }
 
       // METRIC update
-      if (data.event?.type === "METRIC" && data.event?.subtype === "PERIODIC_METRIC_STATE") {
+      if (
+        data.event?.type === "METRIC" &&
+        data.event?.subtype === "PERIODIC_METRIC_STATE"
+      ) {
         const m = data.event.payload.metrics;
-        const metricTime = new Date(m.measure_time || data.event.meta.timestamp).getTime();
+        const metricTime = new Date(
+          m.measure_time || data.event.meta.timestamp,
+        ).getTime();
 
         // Update metrics
         setMetrics({
@@ -111,16 +135,49 @@ export const useDashboardData = () => {
           arpReplies: m.arp_replies,
         });
 
+        if (data.dashboard_stats?.devices) {
+          const incomingDevices = data.dashboard_stats.devices.map(
+            (d: any) => ({
+              id: d.id.toString(),
+              name: d.name || "Unknown",
+              ip: d.ip || "-",
+              device_id: d.device_id || "-",
+              vendor: d.vendor || "-",
+              type: d.type || "unknown",
+              status: d.status,
+              lastSeen: new Date().toISOString(),
+            }),
+          );
+
+          setDevices((prev) => {
+            const updated = [...prev];
+
+            incomingDevices.forEach((device) => {
+              const exists = updated.some((d) => d.id === device.id);
+
+              if (!exists) {
+                updated.unshift(device); // add new device at top
+              }
+            });
+
+            return updated;
+          });
+        }
+
+
         // ARP rate calculation
         if (prevArpRef.current) {
-          const timeDiffMs = new Date().getTime() - new Date(m.measure_time).getTime();
+          const timeDiffMs =
+            new Date().getTime() - new Date(m.measure_time).getTime();
           const timeDiffMins = timeDiffMs / (1000 * 60);
-          const rate = timeDiffMins > 0 ? (m.arp_requests) / timeDiffMins : 0;
+          const rate = timeDiffMins > 0 ? m.arp_requests / timeDiffMins : 0;
           setArpRate(Math.round(rate));
         }
 
-        prevArpRef.current = { arpRequests: m.arp_requests, timestamp: metricTime };
-
+        prevArpRef.current = {
+          arpRequests: m.arp_requests,
+          timestamp: metricTime,
+        };
 
         // Add metric event to feed
         const metricEvent: Event = {
@@ -133,13 +190,13 @@ export const useDashboardData = () => {
         };
         setEvents((prev) => [metricEvent, ...prev]);
       }
-
       // Update dashboard stats from new backend format
       if (data.dashboard_stats) {
         setDashboardStats({
           totalDevices: data.dashboard_stats.total_devices,
           activeDevices: data.dashboard_stats.active_devices,
-          idleDevices: data.dashboard_stats.inactive_devices,
+          // TODO: FIX THE database data gathering issue
+          idleDevices: data.dashboard_stats.idle_devices,
           newDevicesToday: data.dashboard_stats.new_devices_today,
         });
       }
@@ -150,7 +207,10 @@ export const useDashboardData = () => {
 
   // Poll connection status
   useEffect(() => {
-    const interval = setInterval(() => setIsConnected(isWebSocketConnected()), 500);
+    const interval = setInterval(
+      () => setIsConnected(isWebSocketConnected()),
+      500,
+    );
     return () => clearInterval(interval);
   }, []);
 
